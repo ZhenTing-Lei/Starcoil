@@ -1,0 +1,490 @@
+/* ==========================================================================
+   STARCOIL — interface styles (the game itself is drawn on the canvas)
+   ========================================================================== */
+
+/* Layout: one full-bleed canvas; every menu is a centred overlay above it. */
+:root {
+  color-scheme: dark;                       /* one deliberate look: a night sky, in any host theme */
+  --bg: #05060f;                            /* the void behind the sky */
+  --ink: #e8f0ff;                           /* starlight white: primary text */
+  --dim: rgba(214, 226, 255, 0.7);          /* secondary text */
+  --gold: #ffe2a0;                          /* constellation gold: the one accent */
+  --line: rgba(170, 200, 255, 0.28);        /* hairline borders */
+  --panel: rgba(13, 16, 44, 0.84);          /* indigo glass for panels */
+  --font-ui: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Roboto, sans-serif;
+  --font-title: "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+body.playing #game { cursor: none; }
+
+#vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(2, 3, 12, 0.55) 100%);
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Invisible ruler: its padding is the device's safe area, which the canvas HUD reads. */
+#safe-probe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ---- screens ------------------------------------------------------------- */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* the dimmed backdrop runs edge to edge; the content keeps clear of notches and system bars */
+  padding-block: calc(24px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+.screen.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.35s ease;
+}
+
+#screen-title {
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 42%, rgba(5, 6, 18, 0.25) 0%, rgba(5, 6, 18, 0.74) 78%);
+}
+#screen-boon, #screen-pause, #screen-over { background: rgba(4, 5, 16, 0.64); }
+
+.title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(760px, 100%);
+}
+
+.kicker {
+  margin: 0 0 10px;
+  padding-left: 0.42em;
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.logo {
+  margin: 0;
+  padding-left: 0.2em;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: clamp(44px, 11.5vw, 136px);
+  line-height: 1;
+  letter-spacing: 0.2em;
+  background: linear-gradient(180deg, #ffffff 8%, #ffeec2 46%, #8fd4ff 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 26px rgba(130, 185, 255, 0.55));
+}
+
+.tagline {
+  margin: 14px 0 34px;
+  font-family: var(--font-title);
+  font-style: italic;
+  font-size: clamp(16px, 2.3vw, 23px);
+  color: #dbe6ff;
+}
+
+.howto {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin-top: 38px;
+}
+.howto div {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(12, 16, 44, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  text-align: left;
+}
+.howto b {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.howto span {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--dim);
+}
+
+.best {
+  min-height: 1.2em;
+  margin: 22px 0 0;
+  font-size: 12.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.best.gold { color: var(--gold); }
+
+/* ---- buttons ------------------------------------------------------------- */
+
+.btn {
+  padding: 13px 30px 13px calc(30px + 0.22em);
+  border: 1px solid rgba(180, 210, 255, 0.4);
+  border-radius: 999px;
+  background: rgba(20, 28, 66, 0.55);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.btn:hover, .btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(220, 235, 255, 0.8);
+  background: rgba(34, 46, 100, 0.7);
+  outline: none;
+}
+.btn.primary {
+  border-color: var(--gold);
+  background: rgba(60, 48, 20, 0.35);
+  color: #fff3d0;
+  box-shadow: 0 0 28px rgba(255, 210, 120, 0.22), inset 0 0 22px rgba(255, 210, 120, 0.1);
+}
+.btn.primary:hover, .btn.primary:focus-visible {
+  background: rgba(84, 66, 24, 0.5);
+  box-shadow: 0 0 40px rgba(255, 210, 120, 0.4), inset 0 0 26px rgba(255, 210, 120, 0.18);
+}
+.btn.big {
+  padding: 17px 42px 17px calc(42px + 0.22em);
+  font-size: 15px;
+}
+
+/* ---- panels -------------------------------------------------------------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(440px, 100%);
+  padding: 30px 30px 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--panel);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(110, 150, 255, 0.06);
+  text-align: center;
+}
+.panel .kicker { margin-bottom: 0; }
+
+.panel-wide {
+  width: min(960px, 100%);
+  text-align: center;
+}
+
+h2 {
+  margin: 0 0 6px;
+  padding-left: 0.14em;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: clamp(26px, 4.4vw, 36px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff6dc;
+}
+
+.fine {
+  margin: 4px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+
+/* ---- boon cards ---------------------------------------------------------- */
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  margin: 22px 0 16px;
+}
+
+.card {
+  position: relative;
+  width: min(284px, 100%);
+  padding: 26px 22px 22px;
+  border: 1px solid rgba(160, 190, 255, 0.3);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(30, 38, 88, 0.94), rgba(13, 15, 40, 0.95));
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  /* `backwards`, not `both`: a finished animation must not pin the transform and block the hover lift */
+  animation: card-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
+}
+.card:hover, .card:focus-visible {
+  transform: translateY(-6px);
+  border-color: var(--gold);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 34px rgba(255, 214, 130, 0.22);
+  outline: none;
+}
+.card .icon {
+  width: 62px;
+  height: 62px;
+  color: var(--gold);
+  filter: drop-shadow(0 0 10px rgba(255, 214, 130, 0.45));
+}
+.card h3 {
+  margin: 12px 0 8px;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: 21px;
+  letter-spacing: 0.04em;
+  color: #fff6dc;
+}
+.card p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+.card .key {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dim);
+}
+
+.pips {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  height: 14px;
+}
+.pips i {
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(255, 226, 160, 0.5);
+  border-radius: 50%;
+}
+.pips i.on { background: var(--gold); }
+.pips i.next {
+  background: rgba(255, 226, 160, 0.35);
+  box-shadow: 0 0 8px rgba(255, 226, 160, 0.7);
+  animation: pip 0.9s ease-in-out infinite alternate;
+}
+.pips.word {
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 226, 160, 0.75);
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(26px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pip {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+
+/* ---- pause: boons held --------------------------------------------------- */
+
+.boon-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 2px 0 10px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(20, 28, 70, 0.6);
+  font-size: 12.5px;
+  color: #e6eeff;
+}
+.chip .icon { width: 18px; height: 18px; color: var(--gold); }
+.chip b { font-weight: 600; color: var(--gold); }
+.chip.dim { padding: 6px 12px; color: var(--dim); }
+
+/* ---- game over ----------------------------------------------------------- */
+
+.score-big {
+  font-size: clamp(40px, 9vw, 58px);
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(140, 190, 255, 0.6);
+}
+.panel .best { margin: 0; }
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 18px;
+  margin: 12px 0 10px;
+  padding: 16px 4px 4px;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+  text-align: left;
+}
+.stats dt { color: var(--dim); }
+.stats dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+/* ---- toast + corner buttons ---------------------------------------------- */
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  width: max-content;
+  max-width: min(640px, calc(100% - 40px));
+  padding: 12px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(10, 13, 38, 0.88);
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  color: #e9f0ff;
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+#corner {
+  position: absolute;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(12, 16, 44, 0.55);
+  color: var(--dim);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.icon-btn:hover, .icon-btn:focus-visible {
+  border-color: rgba(200, 220, 255, 0.6);
+  background: rgba(28, 38, 90, 0.7);
+  color: #fff;
+  outline: none;
+}
+.icon-btn svg { width: 18px; height: 18px; }
+#btn-mute .slash { display: none; }
+#btn-mute.off .wave { display: none; }
+#btn-mute.off .slash { display: block; }
+/* Pause only makes sense mid-run; the boon cards get the whole screen to themselves. */
+body:not([data-screen="play"]):not([data-screen="pause"]) #btn-pause { display: none; }
+body[data-screen="boon"] #corner { display: none; }
+
+/* ---- small screens ------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .howto { grid-template-columns: 1fr; margin-top: 26px; }
+  .tagline { margin-bottom: 24px; }
+  .panel { padding: 24px 20px 20px; }
+  .card { padding: 20px 18px 18px; }
+  .card .icon { width: 48px; height: 48px; }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); font-size: 14px; }
+}
+@media (max-height: 560px) {
+  .howto { display: none; }
+  .tagline { margin-bottom: 20px; }
+}
+
+/* ---- reduced motion: menus appear without sliding or pulsing -------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+  .pips i.next { animation: none; }
+  .screen, .screen.show, .toast, .btn, .card, .icon-btn { transition-duration: 0.01s; }
+  .btn:hover, .btn:focus-visible, .card:hover, .card:focus-visible { transform: none; }
+}

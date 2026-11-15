@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070a24">
+<title>Starcoil</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%230b1030'/%3E%3Cpath d='M24 24a2 2 0 0 1 4 0a4 4 0 0 1-8 0a6 6 0 0 1 12 0a8 8 0 0 1-16 0a10 10 0 0 1 20 0' fill='none' stroke='%237fe0ff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="game" aria-label="Starcoil — play area"></canvas>
+<div id="vignette"></div>
+<div id="safe-probe"></div>
+
+<div id="ui">
+
+  <!-- Title -->
+  <section id="screen-title" class="screen show">
+    <div class="title-wrap">
+      <p class="kicker">A game of coils &amp; constellations</p>
+      <h1 class="logo">STARCOIL</h1>
+      <p class="tagline">Encircle the dark. Return the stars.</p>
+      <button id="btn-start" class="btn primary big">Begin the vigil</button>
+      <div class="howto">
+        <div><b>Steer</b><span>The serpent follows your mouse or finger. WASD and the arrow keys work too.</span></div>
+        <div><b>Coil</b><span>Loop around the shades and cross your own body. Everything inside is banished.</span></div>
+        <div><b>Dash</b><span id="howto-dash">Click or press Space for a burst of speed. Nothing can hurt you mid-dash.</span></div>
+      </div>
+      <p id="title-best" class="best"></p>
+    </div>
+  </section>
+
+  <!-- Boon choice between nights -->
+  <section id="screen-boon" class="screen">
+    <div class="panel-wide">
+      <p class="kicker" id="boon-kicker">Night I survived</p>
+      <h2>Choose a boon</h2>
+      <div id="boon-cards" class="cards"></div>
+      <p class="fine">Click a card, or press 1 · 2 · 3</p>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="screen">
+    <div class="panel">
+      <h2>Paused</h2>
+      <div id="pause-boons" class="boon-list"></div>
+      <button id="btn-resume" class="btn primary">Resume</button>
+      <button id="btn-restart" class="btn">Restart run</button>
+      <button id="btn-quit" class="btn">Return to title</button>
+      <p class="fine">Esc pause · M sound · F fullscreen</p>
+    </div>
+  </section>
+
+  <!-- Game over -->
+  <section id="screen-over" class="screen">
+    <div class="panel">
+      <p class="kicker" id="over-kicker">The coil unwinds</p>
+      <h2 id="over-title">Night I</h2>
+      <div class="score-big" id="over-score">0</div>
+      <p class="best" id="over-best"></p>
+      <dl class="stats" id="over-stats"></dl>
+      <button id="btn-again" class="btn primary">Rise again</button>
+      <button id="btn-title" class="btn">Return to title</button>
+    </div>
+  </section>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <div id="corner">
+    <button id="btn-pause" class="icon-btn" title="Pause (Esc)" aria-label="Pause">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 5v14M16 5v14"/></svg>
+    </button>
+    <button id="btn-mute" class="icon-btn" title="Sound (M)" aria-label="Toggle sound">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+        <path class="wave" d="M16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/>
+        <path class="slash" d="M16.5 9.5l5 5M21.5 9.5l-5 5"/>
+      </svg>
+    </button>
+    <button id="btn-full" class="icon-btn" title="Fullscreen (F)" aria-label="Toggle fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Plain scripts, in dependency order: no build step, runs straight from this file. -->
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/serpent.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/boons.js"></script>
+<script src="js/waves.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
